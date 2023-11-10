@@ -254,7 +254,7 @@ inline uint64_t truncate_reduce_clear(uint64_t x, int b1, int b2, int s)
     }
 }
 
-/// @brief evaluator thread helper of `internalExtend` when output bitwidth is greater than input bitwidth
+/// @brief evaluator thread helper of `internalExtend` when output bitwidth is  than input bitwidth
 void internalExtend_threads_helper(int thread_idx, int32_t size, int bin, int bout, GroupElement *inArr, GroupElement *outArr, DCFKeyPack *dcfKeys)
 {
     auto p = get_start_end(size, thread_idx);
@@ -1563,6 +1563,7 @@ void Sigmoid(int64_t I, int64_t J, int64_t scale_in, int64_t scale_out,
 #else 
     always_assert(bwA == 16);
 #endif
+
     fix_bitwidth(A, I*J, bwA);
     fix_bitwidth(A_mask, I*J, bwA);
 

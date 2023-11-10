@@ -131,6 +131,7 @@ std::pair<MultKeyNew, MultKeyNew> new_mult_signed_gen(int bw1, int bw2, uint64_t
 }
 
 uint64_t new_mult_signed_eval(int party, int bw1, int bw2, const MultKeyNew &k, const uint64_t x, const uint64_t y) {
+    std::cout << "in this func" << std::endl; 
     GroupElement t1(0, bw1);
     GroupElement t2(0, bw2);
     GroupElement t3(0, bw1);

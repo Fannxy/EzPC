@@ -51,7 +51,10 @@ void input_prng_init()
 
 block get_input_mask_pair(int idx, int owner)
 {
-    block val = inputPrng[owner - SERVER].ecbEncBlock(toBlock(0, counter[owner - SERVER] + idx));
+    // block val = inputPrng[owner - SERVER].ecbEncBlock(toBlock(0, counter[owner - SERVER] + idx));
+
+    // for debug ONLY.
+    block val = ZeroBlock;
     return val;
 }
 

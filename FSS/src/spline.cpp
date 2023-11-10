@@ -26,7 +26,8 @@ SOFTWARE.
 
 std::pair<ReluKeyPack, ReluKeyPack> keyGenRelu(int Bin, int Bout,
                         GroupElement rin, GroupElement rout)
-{
+{   
+    // std::cerr << "key gen relu in file " << __FILE__ << " in line: " << __LINE__ << std::endl;
     // represents offset poly p(x-rin)'s coefficients, where p(x)=x
     GroupElement beta[2];
     beta[0] = GroupElement(1, Bin);
@@ -37,6 +38,9 @@ std::pair<ReluKeyPack, ReluKeyPack> keyGenRelu(int Bin, int Bout,
     k0.Bout = Bout; k1.Bout = Bout;
 
     GroupElement gamma = rin - 1;
+    // std::cerr << "bin: " << Bin << std::endl;
+    // std::cerr << "rin: " << rin << std::endl;
+    // std::cerr << "alpha: " << gamma << " beta0: " << beta[0] << " beta1: " << beta[1] << std::endl;
     auto dcfKeys = keyGenDCF(Bin, Bout, 2, gamma, beta);
 
     GroupElement p = GroupElement(0, Bin);
@@ -81,18 +85,17 @@ GroupElement evalRelu(int party, GroupElement x, const ReluKeyPack &k)
     int Bout = k.Bout;
     int Bin = k.Bin;
 
-    GroupElement p = GroupElement(0, Bin);
-    GroupElement q = GroupElement((((uint64_t)1 << (Bin-1)) - 1), Bin);
-    GroupElement q1 = q.value + 1, xL = x.value - 1, xR1 = x.value - 1 - q1.value;
+    GroupElement p = GroupElement(0, Bin); // 0.
+    GroupElement q = GroupElement((((uint64_t)1 << (Bin-1)) - 1), Bin); // 2^{n-1} - 1.
+    GroupElement q1 = q.value + 1, xL = x.value - 1, xR1 = x.value - 1 - q1.value; // q1 = 2^{n-1}, xL = x-1, xR1 = x - 2^{n-1} - 1
     GroupElement share_L[2]; 
-    evalDCF(Bin, Bout, 2, share_L, party, xL, k.k, k.g, k.v);
+    evalDCF(Bin, Bout, 2, share_L, party, xL, k.k, k.g, k.v); // < r_in-1, return 1 and -rin.
     GroupElement share_R1[2];
     evalDCF(Bin, Bout, 2, share_R1, party, xR1, k.k, k.g, k.v);
 
     GroupElement cx = GroupElement((x.value > 0) - (x.value > q1.value), k.Bin);
     GroupElement sum = GroupElement(0, Bout);
-    
-    GroupElement w_b = cx.value * k.beta_b0.value - share_L[0].value + share_R1[0].value + k.e_b0.value;
+    GroupElement w_b = cx.value * k.beta_b0.value - share_L[0].value + share_R1[0].value + k.e_b0.value; // shares of 0 or 1.
     sum.value = sum.value + (w_b.value * x.value);
 
     w_b.value = cx.value * k.beta_b1.value - share_L[1].value + share_R1[1].value + k.e_b1.value;

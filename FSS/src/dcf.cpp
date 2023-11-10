@@ -91,14 +91,14 @@ block traverseOneDCF(int Bin, int Bout, int groupSize, int party,
 
     block stcw;
     block ct[2]; // {tau, v_this_level}
-    u8 t_previous = lsb(s);
+    u8 t_previous = lsb(s); // extract the t.
     const auto scw = (cw & notThreeBlock);
-    block ds[] = { ((cw >> 1) & OneBlock), (cw & OneBlock) };
+    block ds[] = { ((cw >> 1) & OneBlock), (cw & OneBlock) }; // 0th bit is t_L, 1th bit is t_R
     const auto mask = zeroAndAllOne[t_previous];
-    auto ss = s & notThreeBlock;
-
+    auto ss = s & notThreeBlock; // s previous.
+    
     AES ak(ss);
-    ak.ecbEncTwoBlocks(blocks + 2 * keep, ct);
+    ak.ecbEncTwoBlocks(blocks + 2 * keep, ct); // pseudo-random func.
 
     stcw = ((scw ^ ds[keep]) & mask) ^ ct[0];
     uint64_t sign = (party == SERVER1) ? -1 : 1;
@@ -137,8 +137,9 @@ block traversePathDCF(int Bin, int Bout, int groupSize, int party,
 std::pair<DCFKeyPack, DCFKeyPack> keyGenDCF(int Bin, int Bout, int groupSize,
                 GroupElement idx, GroupElement* payload)
 {
+    // idx - alpha; payload - beta;
     // idx: bitsize Bin, payload: bitsize Bout & size groupSize
-    bool greaterThan = false;
+    bool greaterThan = false; // all for less than.
 
     static const block notOneBlock = toBlock(~0, ~1);
     static const block notThreeBlock = toBlock(~0, ~3);
@@ -146,20 +147,20 @@ std::pair<DCFKeyPack, DCFKeyPack> keyGenDCF(int Bin, int Bout, int groupSize,
     static const block ThreeBlock = toBlock(0, 3);
     const static block pt[4] = {ZeroBlock, OneBlock, TwoBlock, ThreeBlock};
 
-    auto s = prng.get<std::array<block, 2>>();
+    auto s = prng.get<std::array<block, 2>>(); // 128 bits, two 64 bits values.
     block si[2][2];
     block vi[2][2];
 
     GroupElement *v_alpha = new GroupElement[groupSize];
     for (int i = 0; i < groupSize; ++i)
     {
-        v_alpha[i] = GroupElement(0, Bout);
+        v_alpha[i] = GroupElement(0, Bout); // totally Bout 0 elements.
     }
 
-    block *k0 = new block[Bin + 1];
-    block *k1 = new block[Bin + 1];
-    GroupElement *v0 = new GroupElement[Bin * groupSize];    // bitsize Bout, size Bin x groupSize
-    GroupElement *g0 = new GroupElement[groupSize];     // bitsize: Bout
+    block *k0 = new block[Bin + 1]; // for final keys0.
+    block *k1 = new block[Bin + 1]; // for final keys1.
+    GroupElement *v0 = new GroupElement[Bin * groupSize];    // bitsize Bout, size Bin x groupSize, V_CW
+    GroupElement *g0 = new GroupElement[groupSize];     // bitsize: Bout, all Bount = 1.
 
     s[0] = (s[0] & notOneBlock) ^ ((s[1] & OneBlock) ^ OneBlock);
     k0[0] = s[0];
@@ -167,13 +168,15 @@ std::pair<DCFKeyPack, DCFKeyPack> keyGenDCF(int Bin, int Bout, int groupSize,
     block ct[4];
 
     for (int i = 0; i < Bin; ++i)
-    {
+    {   
+        // idx is \alpha.
         const u8 keep = static_cast<uint8_t>(idx.value >> (Bin - 1 - i)) & 1;
         auto a = toBlock(keep);
 
         auto ss0 = s[0] & notThreeBlock;
         auto ss1 = s[1] & notThreeBlock;
 
+        // generate the randomness each i.
         AES ak0(ss0);
         AES ak1(ss1);
         ak0.ecbEncFourBlocks(pt, ct);
@@ -186,11 +189,14 @@ std::pair<DCFKeyPack, DCFKeyPack> keyGenDCF(int Bin, int Bout, int groupSize,
         si[1][1] = ct[1];
         vi[1][0] = ct[2];
         vi[1][1] = ct[3];
-
         auto ti0 = lsb(s[0]);
         auto ti1 = lsb(s[1]);
+
+        // compute the sign bit of ti1.
         GroupElement sign((ti1 == 1) ? -1 : +1, Bout);
 
+
+        // random convert.
         uint64_t vi_01_converted[groupSize];
         uint64_t vi_11_converted[groupSize];
         uint64_t vi_10_converted[groupSize];
@@ -199,7 +205,8 @@ std::pair<DCFKeyPack, DCFKeyPack> keyGenDCF(int Bin, int Bout, int groupSize,
         convert(Bout, groupSize, vi[1][keep], vi_10_converted);
         convert(Bout, groupSize, vi[0][keep ^ 1], vi_01_converted);
         convert(Bout, groupSize, vi[1][keep ^ 1], vi_11_converted);
-
+        
+        // pass value for each element in v_alpha.
         for (int lp = 0; lp < groupSize; ++lp)
         {
             v0[i * groupSize + lp] = sign * (-v_alpha[lp] - vi_01_converted[lp] + vi_11_converted[lp]);
@@ -216,6 +223,7 @@ std::pair<DCFKeyPack, DCFKeyPack> keyGenDCF(int Bin, int Bout, int groupSize,
             v_alpha[lp] = v_alpha[lp] - vi_10_converted[lp] + vi_00_converted[lp] + sign * v0[i * groupSize + lp];
         }
 
+        // compute for both s_left and s_right.
         std::array<block, 2> siXOR{si[0][0] ^ si[1][0], si[0][1] ^ si[1][1]};
 
         // get the left and right t_CW bits
@@ -224,7 +232,7 @@ std::pair<DCFKeyPack, DCFKeyPack> keyGenDCF(int Bin, int Bout, int groupSize,
             (OneBlock & siXOR[1]) ^ a};
 
         // take scw to be the bits [127, 2] as scw = s0_loss ^ s1_loss
-        auto scw = siXOR[keep ^ 1] & notThreeBlock;
+        auto scw = siXOR[keep ^ 1] & notThreeBlock; // leave two empty block?
 
         k0[i + 1] = k1[i + 1] = scw           // set bits [127, 2] as scw = s0_loss ^ s1_loss
                                 ^ (t[0] << 1) // set bit 1 as tL
@@ -255,6 +263,8 @@ std::pair<DCFKeyPack, DCFKeyPack> keyGenDCF(int Bin, int Bout, int groupSize,
         }
     }
 
+
+    // kb is sb; g0 is CW^{(n+1)}; v0 is the CWs, totally n CWs.
     return std::make_pair(DCFKeyPack(Bin, Bout, groupSize, k0, g0, v0), DCFKeyPack(Bin, Bout, groupSize, k1, g0, v0));
 }
 
@@ -283,6 +293,7 @@ void evalDCF(int Bin, int Bout, int groupSize,
         evalGroupIdxLen = groupSize;
     }
 
+    // traverse the tree on the path of idx.
     auto s = traversePathDCF(Bin, Bout, groupSize, party, idx, k, out, v, geq, evalGroupIdxStart, evalGroupIdxLen);
 
     u8 t = lsb(s);

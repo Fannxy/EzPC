@@ -35,6 +35,7 @@ add_library(fss STATIC
     pubdiv.cpp
     spline.cpp
     input_prng.cpp
+    comp.cpp
 )
 
 find_package(Threads REQUIRED)
@@ -86,6 +87,7 @@ install(FILES
         "pubdiv.h"
         "input_prng.h"
         "config.h"
+        "comp.h"
         DESTINATION include)
 
 install(DIRECTORY

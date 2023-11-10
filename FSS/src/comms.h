@@ -82,6 +82,8 @@ public:
 
     void send_dcf_keypack(const DCFKeyPack &kp);
 
+    // void send_zgt_keypack(const ZGTKey &kp);
+
     void send_ddcf_keypack(const DualDCFKeyPack &kp);
 
     void send_relu_key(const ReluKeyPack &kp);
@@ -136,6 +138,8 @@ public:
     GroupElement recv_ge(int bw);
 
     DCFKeyPack recv_dcf_keypack(int Bin, int Bout, int groupSize);
+
+    // ZGTKey recv_zgt_keypack(int Bin, int Bout);
 
     DualDCFKeyPack recv_ddcf_keypack(int Bin, int Bout, int groupSize);
 

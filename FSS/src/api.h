@@ -136,6 +136,16 @@ void ElemWiseVectorPublicDiv(int32_t s1, MASK_PAIR(GroupElement *arr1), int32_t 
 void ElemWiseSecretSharedVectorMult(int32_t size, MASK_PAIR(GroupElement *inArr),
                                     MASK_PAIR(GroupElement *multArrVec), MASK_PAIR(GroupElement *outputArr));
 
+void ElemWiseSecretSharedSub(int32_t size, MASK_PAIR(GroupElement *inArr1),
+                                MASK_PAIR(GroupElement *inArr2), MASK_PAIR(GroupElement *outputArr));
+
+// void ElemWiseZeroGreaterThan(int32_t size, MASK_PAIR(GroupElement *inArr), MASK_PAIR(GroupElement *outputArr));
+
+void ElemWiseGE(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupElement *inArrY), MASK_PAIR(GroupElement *outputArr));
+
+void ElemWiseGT(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupElement *inArrY), MASK_PAIR(GroupElement *outputArr));
+
+
 void Floor(int32_t s1, MASK_PAIR(GroupElement *inArr), MASK_PAIR(GroupElement *outArr), int32_t sf);
 
 inline GroupElement funcSSCons(uint64_t val) {

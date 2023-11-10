@@ -403,6 +403,15 @@ void Peer::send_dcf_keypack(const DCFKeyPack &kp) {
     }
 }
 
+
+// void Peer::send_zgt_keypack(const ZGTKey &kp) {
+//     DCFKeyPack dcfKey(kp.Bin, kp.Bout, 1, kp.k, kp.g, kp.v);
+//     send_dcf_keypack(dcfKey);
+//     send_ge(kp.w, kp.Bout);
+// }
+
+
+
 void Peer::send_ddcf_keypack(const DualDCFKeyPack &kp) {
     send_dcf_keypack(kp.dcfKey);
     for (int i = 0; i < kp.groupSize; ++i) {
@@ -643,6 +652,16 @@ DCFKeyPack Dealer::recv_dcf_keypack(int Bin, int Bout, int groupSize) {
     }
     return kp;
 }
+
+// ZGTKey Dealer::recv_zgt_keypack(int Bin, int Bout){
+//     DCFKeyPack dcfKey = recv_dcf_keypack(Bin, Bout, 1);
+//     GroupElement w = recv_ge(Bout);
+//     ZGTKey kp;
+//     kp.Bin = Bin; kp.Bout = Bout;
+//     kp.g = dcfKey.g; kp.k = dcfKey.k; kp.v = dcfKey.v;
+//     kp.w = w;
+//     return kp;
+// }
 
 DualDCFKeyPack Dealer::recv_ddcf_keypack(int Bin, int Bout, int groupSize) {
     DualDCFKeyPack kp;

@@ -33,3 +33,14 @@ GroupElement add_helper(uint8_t party, GroupElement x, GroupElement y, GroupElem
         return x + y;
     }
 }
+
+
+GroupElement sub_helper(uint8_t party, GroupElement x, GroupElement y, GroupElement x_mask, GroupElement y_mask)
+{
+    if ((party == DEALER)) {
+        return x_mask - y_mask;
+    }
+    else {
+        return x - y;
+    }
+}

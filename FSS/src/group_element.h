@@ -56,7 +56,7 @@ struct GroupElement {
 
 inline void mod(GroupElement &a)
 {
-    if (a.bitsize != 64)
+    if (a.bitsize != 64) // only preserve the meaningful bits.
         a.value = a.value & ((uint64_t(1) << a.bitsize) - 1); 
 }
 
@@ -206,12 +206,13 @@ inline bool operator>=(const GroupElement &a, const GroupElement &b)
 }
 
 inline std::pair<GroupElement, GroupElement> splitShare(const GroupElement& a)
-{
+{   
+    std::cerr << " " << std::endl; // this line is important when running on MAC pro, while i do not know why..
     GroupElement a1, a2;
     a1.bitsize = a.bitsize;
     a2.bitsize = a.bitsize;
-    a1.value = rand() % (1 << a.bitsize);
-    // a1.value = 0;
+    // a1.value = rand() % (1 << a.bitsize);
+    a1.value = 0;
     mod(a1);
     a2.value = (a.value - a1.value);
     mod(a2);

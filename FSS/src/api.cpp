@@ -26,6 +26,8 @@ SOFTWARE.
 #include "conv.h"
 #include "spline.h"
 #include "mult.h"
+#include "add.h"
+#include "comp.h"
 #include "pubdiv.h"
 #include "dcf.h"
 #include "input_prng.h"
@@ -633,10 +635,12 @@ void reluHelper(int thread_idx, int32_t size, GroupElement *inArr, GroupElement 
 }
 
 void relu_dealer_threads_helper(int thread_idx, int32_t size, GroupElement *inArr_mask, GroupElement *outArr_mask, std::pair<ReluKeyPack, ReluKeyPack> *keys)
-{
+{   
+    // std::cerr << "in relu helper" << std::endl;
     auto p = get_start_end(size, thread_idx);
     for(int i = p.first; i < p.second; i += 1){
         outArr_mask[i] = random_ge(bitlength); // prng inside multithreads, need some locking
+        // outArr_mask[i] = 0;
         keys[i] = keyGenRelu(bitlength, bitlength, inArr_mask[i], outArr_mask[i]);
     }
 }
@@ -666,18 +670,20 @@ void Relu(int32_t size, MASK_PAIR(GroupElement *inArr), MASK_PAIR(GroupElement *
         for(int i = 0; i < num_threads; ++i) {
             thread_pool[i] = std::thread(relu_dealer_threads_helper, i, size, inArr_mask, outArr_mask, keys);
         }
-
+        // std::cerr << "check 1" << std::endl;
         for(int i = 0; i < num_threads; ++i) {
             thread_pool[i].join();
         }
         auto end = std::chrono::high_resolution_clock::now();
         dealer_total_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 
+        // std::cerr << "check 2" << std::endl;
         for(int i = 0; i < size; ++i) {
             server->send_relu_key(keys[i].first);
             client->send_relu_key(keys[i].second);
             freeReluKeyPackPair(keys[i]);
         }
+        // std::cerr << "check 3" << std::endl;
         delete[] keys;
 #endif
         dealerMicroseconds += dealer_total_time;
@@ -1166,6 +1172,9 @@ void ElemWiseSecretSharedVectorMult(int32_t size, MASK_PAIR(GroupElement *inArr)
         for(int i = 0; i < size; ++i) {
             auto dealer_start = std::chrono::high_resolution_clock::now();
             outputArr_mask[i] = random_ge(bitlength);
+            // outputArr_mask[i] = 0;
+            // std::cerr << "bit len: " << bitlength << std::endl;
+            // std::cerr << "generated mask: " << outputArr_mask[i] << std::endl;
             auto keys = MultGen(inArr_mask[i], multArrVec_mask[i], outputArr_mask[i]);
             auto dealer_end = std::chrono::high_resolution_clock::now();
             dealer_toal_time += std::chrono::duration_cast<std::chrono::microseconds>(dealer_end - dealer_start).count();
@@ -1208,6 +1217,113 @@ void ElemWiseSecretSharedVectorMult(int32_t size, MASK_PAIR(GroupElement *inArr)
     std::cerr << ">> ElemWise Mult - end" << std::endl;
 }
 
+
+void ElemWiseSecretSharedSub(int32_t size, MASK_PAIR(GroupElement *inArr1),
+                                    MASK_PAIR(GroupElement *inArr2), MASK_PAIR(GroupElement *outputArr))
+{
+    std::cerr << ">> ElemWise Sub - begin" << std::endl;
+
+    uint64_t total_time = 0;
+    auto start = std::chrono::high_resolution_clock::now();
+
+    for(int i=0; i<size; i++){
+        auto s = sub_helper(party, inArr1[i], inArr2[i], inArr1_mask[i], inArr2_mask[i]);
+        if(party == DEALER) outputArr_mask[i] = s;
+        else outputArr[i] = s;
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    total_time += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+
+    if(party == DEALER) dealerMicroseconds = dealerMicroseconds + total_time;
+    else evalMicroseconds += total_time;
+    std::cerr << "   Eval Time: " << total_time / 1000.0 << " milliseconds" << std::endl;
+    std::cerr << ">> ElemWise Sub - end" << std::endl;
+}
+
+void ElemWiseGE(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupElement *inArrY), MASK_PAIR(GroupElement *outputArr)){
+    std::cerr << ">> ElemWise GE - begin" << std::endl;
+
+    if(party == DEALER){
+        uint64_t dealer_total_time = 0;
+        for (int i=0; i<size; i++){
+            auto dealer_start = std::chrono::high_resolution_clock::now();
+            outputArr_mask[i] = random_ge(bitlength);
+            auto keys = keyGenSCMP(bitlength, bitlength, inArrX_mask[i], inArrY_mask[i], outputArr_mask[i]);
+            // outputArr_mask[i] = 1 - outputArr_mask[i];
+            auto dealer_end = std::chrono::high_resolution_clock::now();
+            dealer_total_time += std::chrono::duration_cast<std::chrono::microseconds>(dealer_end - dealer_start).count();
+            server->send_scmp_keypack(keys.first);
+            client->send_scmp_keypack(keys.second);
+        }
+        dealerMicroseconds = dealerMicroseconds + dealer_total_time;
+    }
+    else{
+        // get the keys.
+        ScmpKeyPack *keys = new ScmpKeyPack[size];
+        for(int i=0; i<size; i++){
+            keys[i] = dealer->recv_scmp_keypack(bitlength, bitlength);
+        }
+        peer->sync();
+
+        // eval the keys.
+        auto start = std::chrono::high_resolution_clock::now();
+        for(int i=0; i<size; i++){
+            outputArr[i] = evalSCMP(party - SERVER, keys[i], inArrX
+            [i], inArrY[i]);
+            // outputArr[i] = outputArr[i];
+        }
+        reconstruct(size, outputArr, bitlength);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto eval_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+        evalMicroseconds += eval_time;
+        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
+        delete[] keys;
+    }
+    std::cerr << ">> ElemWise GE - end" << std::endl;
+}
+
+
+void ElemWiseGT(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupElement *inArrY), MASK_PAIR(GroupElement *outputArr)){
+    std::cerr << ">> ElemWise GT - begin" << std::endl;
+    if(party == DEALER){
+        uint64_t dealer_total_time = 0;
+        for (int i=0; i<size; i++){
+            auto dealer_start = std::chrono::high_resolution_clock::now();
+            outputArr_mask[i] = random_ge(bitlength);
+            auto keys = keyGenSCMP(bitlength, bitlength, inArrY_mask[i], inArrX_mask[i], outputArr_mask[i]);
+            outputArr_mask[i] = 1 - outputArr_mask[i];
+            auto dealer_end = std::chrono::high_resolution_clock::now();
+            dealer_total_time += std::chrono::duration_cast<std::chrono::microseconds>(dealer_end - dealer_start).count();
+            server->send_scmp_keypack(keys.first);
+            client->send_scmp_keypack(keys.second);
+        }
+        dealerMicroseconds = dealerMicroseconds + dealer_total_time;
+    }
+    else{
+        // get the keys.
+        ScmpKeyPack *keys = new ScmpKeyPack[size];
+        for(int i=0; i<size; i++){
+            keys[i] = dealer->recv_scmp_keypack(bitlength, bitlength);
+        }
+        peer->sync();
+
+        // eval the keys.
+        auto start = std::chrono::high_resolution_clock::now();
+        for(int i=0; i<size; i++){
+            outputArr[i] = evalSCMP(party - SERVER, keys[i], inArrY
+            [i], inArrX[i]);
+            outputArr[i] = 1 - outputArr[i];
+        }
+        reconstruct(size, outputArr, bitlength);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto eval_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+        evalMicroseconds += eval_time;
+        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
+        delete[] keys;
+    }
+    std::cerr << ">> ElemWise GT - end" << std::endl;
+}
 
 void Floor(int32_t s1, MASK_PAIR(GroupElement *inArr), MASK_PAIR(GroupElement *outArr), int32_t sf) 
 {

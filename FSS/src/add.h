@@ -23,3 +23,5 @@ SOFTWARE.
 #include "group_element.h"
 
 GroupElement add_helper(uint8_t party, GroupElement x, GroupElement y, GroupElement x_mask, GroupElement y_mask);
+
+GroupElement sub_helper(uint8_t party, GroupElement x, GroupElement y, GroupElement x_mask, GroupElement y_mask);

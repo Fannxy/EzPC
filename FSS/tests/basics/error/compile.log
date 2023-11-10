@@ -1,0 +1,32 @@
+[WARNING] Running as root is not recommended
+In file included from /root/EzPC/EzPC/EzPC/../../FSS/build/install/include/group_element.h:26,
+                 from /root/EzPC/EzPC/EzPC/../../FSS/build/install/include/fss.h:24,
+                 from ./main.cpp:6:
+/root/EzPC/EzPC/EzPC/../../FSS/build/install/include/cryptoTools/Common/Defines.h:73:37: warning: ignoring attributes on template argument 'osuCrypto::block' {aka '__vector(2) long long int'} [-Wignored-attributes]
+   73 |     extern const std::array<block, 2> zeroAndAllOne;
+      |                                     ^
+In file included from /root/EzPC/EzPC/EzPC/../../FSS/build/install/include/cryptoTools/Crypto/PRNG.h:4,
+                 from /root/EzPC/EzPC/EzPC/../../FSS/build/install/include/group_element.h:27,
+                 from /root/EzPC/EzPC/EzPC/../../FSS/build/install/include/fss.h:24,
+                 from ./main.cpp:6:
+/root/EzPC/EzPC/EzPC/../../FSS/build/install/include/cryptoTools/Crypto/AES.h:35:43: warning: ignoring attributes on template argument 'const block' {aka 'const __vector(2) long long int'} [-Wignored-attributes]
+   35 |         void ecbEncBlocks(span<const block> plaintexts, span<block> ciphertext) const
+      |                                           ^
+/root/EzPC/EzPC/EzPC/../../FSS/build/install/include/cryptoTools/Crypto/AES.h:35:67: warning: ignoring attributes on template argument 'osuCrypto::block' {aka '__vector(2) long long int'} [-Wignored-attributes]
+   35 |         void ecbEncBlocks(span<const block> plaintexts, span<block> ciphertext) const
+      |                                                                   ^
+/root/EzPC/EzPC/EzPC/../../FSS/build/install/include/cryptoTools/Crypto/AES.h:56:55: warning: ignoring attributes on template argument 'osuCrypto::block' {aka '__vector(2) long long int'} [-Wignored-attributes]
+   56 |         void ecbEncCounterMode(u64 baseIdx, span<block> ciphertext) const
+      |                                                       ^
+/root/EzPC/EzPC/EzPC/../../FSS/build/install/include/cryptoTools/Crypto/AES.h:81:31: warning: ignoring attributes on template argument 'osuCrypto::block' {aka '__vector(2) long long int'} [-Wignored-attributes]
+   81 |         MultiKeyAES(span<block> keys) { setKeys(keys); }
+      |                               ^
+/root/EzPC/EzPC/EzPC/../../FSS/build/install/include/cryptoTools/Crypto/AES.h:84:32: warning: ignoring attributes on template argument 'osuCrypto::block' {aka '__vector(2) long long int'} [-Wignored-attributes]
+   84 |         void setKeys(span<block> keys)
+      |                                ^
+In file included from /root/EzPC/EzPC/EzPC/../../FSS/build/install/include/group_element.h:27,
+                 from /root/EzPC/EzPC/EzPC/../../FSS/build/install/include/fss.h:24,
+                 from ./main.cpp:6:
+/root/EzPC/EzPC/EzPC/../../FSS/build/install/include/cryptoTools/Crypto/PRNG.h:140:20: warning: ignoring attributes on template argument 'osuCrypto::block' {aka '__vector(2) long long int'} [-Wignored-attributes]
+  140 |   std::vector<block> mBuffer;
+      |                    ^

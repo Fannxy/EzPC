@@ -26,6 +26,12 @@ SOFTWARE.
 
 using namespace osuCrypto;
 
+struct GTKey{
+    int Bin, Bout;
+    block *k;
+    GroupElement *g, *v;
+};
+
 struct DCFKeyPack{
     int Bin, Bout, groupSize;
     block *k;   // size Bin+1
@@ -86,6 +92,15 @@ struct MatMulKey{
     int Bin, Bout;
     int s1, s2, s3;
     GroupElement *a, *b, *c;    
+};
+
+struct ZGTKey{
+    int Bin, Bout;
+    // for DCF keys
+    block *k;   // size Bin+1
+    GroupElement *g;    // bitsize Bout, size groupSize = Bout
+    GroupElement *v;   // bitsize Bout, size Bin x groupSize = Bout
+    GroupElement w;
 };
 
 inline void freeMatMulKey(MatMulKey &key){
