@@ -82,7 +82,7 @@ public:
 
     void send_dcf_keypack(const DCFKeyPack &kp);
 
-    // void send_zgt_keypack(const ZGTKey &kp);
+    void send_dpf_keypack(const DPFKeyPack &kp);
 
     void send_ddcf_keypack(const DualDCFKeyPack &kp);
 
@@ -139,7 +139,7 @@ public:
 
     DCFKeyPack recv_dcf_keypack(int Bin, int Bout, int groupSize);
 
-    // ZGTKey recv_zgt_keypack(int Bin, int Bout);
+    DPFKeyPack recv_dpf_keypack(int Bin, int Bout, int groupSize);
 
     DualDCFKeyPack recv_ddcf_keypack(int Bin, int Bout, int groupSize);
 

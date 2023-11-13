@@ -40,6 +40,8 @@ inline u8 lsb(const block &b)
     return _mm_cvtsi128_si64x(b) & 1;
 }
 
+void convert(const int bitsize, const int groupSize, const block &b, uint64_t *out);
+
 std::pair<DCFKeyPack, DCFKeyPack> keyGenDCF(int Bin, int Bout, int groupSize,
                 GroupElement idx, GroupElement* payload);
 

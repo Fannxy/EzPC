@@ -94,13 +94,23 @@ struct MatMulKey{
     GroupElement *a, *b, *c;    
 };
 
-struct ZGTKey{
-    int Bin, Bout;
-    // for DCF keys
+// struct ZGTKey{
+//     int Bin, Bout;
+//     // for DCF keys
+//     block *k;   // size Bin+1
+//     GroupElement *g;    // bitsize Bout, size groupSize = Bout
+//     GroupElement *v;   // bitsize Bout, size Bin x groupSize = Bout
+//     GroupElement w;
+// };
+
+struct DPFKeyPack{
+    int Bin, Bout, groupSize;
     block *k;   // size Bin+1
-    GroupElement *g;    // bitsize Bout, size groupSize = Bout
-    GroupElement *v;   // bitsize Bout, size Bin x groupSize = Bout
-    GroupElement w;
+    GroupElement *g;    // bitsize Bout, size groupSize
+    DPFKeyPack(int Bin, int Bout, int groupSize,
+                block *k,
+                GroupElement *g) : Bin(Bin), Bout(Bout), groupSize(groupSize), k(k), g(g){}
+    DPFKeyPack() {}
 };
 
 inline void freeMatMulKey(MatMulKey &key){

@@ -1325,6 +1325,31 @@ void ElemWiseGT(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
     std::cerr << ">> ElemWise GT - end" << std::endl;
 }
 
+void ElemWiseEQZ(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupElement *outputArr)){
+    std::cerr << ">> ElemWise EQZ - begin" << std::endl;
+    if(party == DEALER){
+        for(int i=0; i<size; i++){
+            // outputArr_mask[i] = random_ge(bitlength);
+            outputArr_mask[i] = 0;
+            auto keys = keyGenDPF(bitlength, bitlength, 0, 1);
+            server->send_dpf_keypack(keys.first);
+            client->send_dpf_keypack(keys.second);
+        }
+    }
+    else{   
+        DPFKeyPack *keys = new DPFKeyPack[size];
+        for(int i=0; i<size; i++){
+            keys[i] = dealer->recv_dpf_keypack(bitlength, bitlength, 1);
+        }
+        peer->sync();
+        for(int i=0; i<size; i++){
+            evalDPF(party - SERVER, &outputArr[i], inArrX[i], keys[i]);
+        }
+        reconstruct(size, outputArr, bitlength);
+    }
+    std::cerr << ">> ElemWise EQZ - end" << std::endl;
+}
+
 void Floor(int32_t s1, MASK_PAIR(GroupElement *inArr), MASK_PAIR(GroupElement *outArr), int32_t sf) 
 {
     assert(false && "Floor not implemented");

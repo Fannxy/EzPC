@@ -18,8 +18,8 @@ def save_file(filename, values):
 
 if __name__ == "__main__":
     # generate the input and output data for basic tests.
-    random.seed(16)
-    size = 5
+    random.seed(16) 
+    size = 100
     input_file1 = "./input/input1.txt"
     input_file2 = "./input/input2.txt"
     

@@ -1,0 +1,69 @@
+(*
+Name:        Basic Building Blocks Test
+Author:      Fanxy
+Description: Test the APIs of basic functions: addition, multiplication, comparison and equal-test.
+*)
+
+extern void initialize();
+extern void finalize();
+extern void ElemWiseSecretSharedVectorMult(int32_pl s1, int64_al[s1] arr1, int64_al[s1] arr2, int64_al[s1] outArr);
+extern void ElemWiseSecretSharedSub(int32_pl s1, int64_al[s1] arr1, int64_al[s1] arr2, int64_al[s1] outArr);
+extern void ElemWiseGE(int32_pl s1, int64_al[s1] arr1, int64_al[s1] arr2, int64_al[s1] outArr);
+extern void ElemWiseGT(int32_pl s1, int64_al[s1] arr1, int64_al[s1] arr2, int64_al[s1] outArr);
+extern void ElemWiseEQZ(int32_pl s1, int64_al[s1] arr1, int64_al[s1] outArr);
+extern void Relu(int32_pl s1, int64_al[s1] arr1, int64_al[s1] outArr, int32_pl zero, bool_pl flag);
+
+
+def void main(){
+    int32_pl size = 5;
+    input(SERVER, A, int64_al[size]);
+    input(CLIENT, B, int64_al[size]);
+
+    initialize();
+    
+    int64_al[size] resADD;
+    int64_al[size] resSUB;
+    int64_al[size] resMUL;
+    int64_al[size] resGE;
+    int64_al[size] resGT;
+    int64_al[size] resEQ;
+    int64_al[size] resZGT;
+    int64_al[size] resRELU;
+
+    
+    (* test addition *)
+    for i=[0:size]
+    {
+        resADD[i] = A[i] + B[i];
+    };
+
+    (* test subsection *)
+    ElemWiseSecretSharedSub(size, A, B, resSUB);
+    
+    (* test multiplication *)
+    ElemWiseSecretSharedVectorMult(size, A, B, resMUL);
+
+    (* test comp *)
+
+    (* test relu *)
+    Relu(size, resSUB, resRELU, 0, false);
+
+    (* test GE *)
+    ElemWiseGE(size, A, B, resGE);
+
+    (* test GT *)
+    ElemWiseGT(size, A, B, resGT);
+
+    (* test EQ *)
+    ElemWiseEQZ(size, A, resEQ);
+    
+    
+    finalize();
+    
+    output(CLIENT, resADD);
+    output(CLIENT, resSUB);
+    output(CLIENT, resRELU);
+    output(CLIENT, resGE);
+    output(CLIENT, resGT);
+    output(CLIENT, resMUL);
+}
