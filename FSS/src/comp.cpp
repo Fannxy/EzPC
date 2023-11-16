@@ -165,3 +165,25 @@ void evalDPF(int party, GroupElement *res, GroupElement idx, const DPFKeyPack &k
     GroupElement res_ = (party == 0) ? final_term : -1 * final_term;
     res->value = res_.value;
 }
+
+
+std::pair<EQZKeyPack, EQZKeyPack> keyGenEQZ(int Bin, int Bout, GroupElement rin, GroupElement rout){
+    EQZKeyPack key0, key1;
+    key0.Bin = Bin; key1.Bin = Bin;
+    key0.Bout = Bout; key1.Bout = Bout;
+
+    auto keys = keyGenDPF(Bin, Bout, rin, 1); // generate the DPF Keys
+    auto rout_split = splitShare(rout); // generate the output shares.
+
+    key0.dpfKey = keys.first; key1.dpfKey = keys.second;
+    key0.rb = rout_split.first; key1.rb = rout_split.second;
+
+    return std::make_pair(key0, key1);
+}
+
+void evalEQZ(int party, GroupElement *res, GroupElement idx, const EQZKeyPack &key){
+    GroupElement res_;
+    evalDPF(party, &res_, idx, key.dpfKey);
+    res_ = res_ + key.rb;
+    res->value = res_.value;
+}

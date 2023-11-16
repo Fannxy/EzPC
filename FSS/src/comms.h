@@ -84,6 +84,8 @@ public:
 
     void send_dpf_keypack(const DPFKeyPack &kp);
 
+    void send_eqz_keypack(const EQZKeyPack &kp);
+
     void send_ddcf_keypack(const DualDCFKeyPack &kp);
 
     void send_relu_key(const ReluKeyPack &kp);
@@ -140,6 +142,8 @@ public:
     DCFKeyPack recv_dcf_keypack(int Bin, int Bout, int groupSize);
 
     DPFKeyPack recv_dpf_keypack(int Bin, int Bout, int groupSize);
+
+    EQZKeyPack recv_eqz_keypack(int Bin,  int Bout);
 
     DualDCFKeyPack recv_ddcf_keypack(int Bin, int Bout, int groupSize);
 

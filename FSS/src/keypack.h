@@ -113,6 +113,12 @@ struct DPFKeyPack{
     DPFKeyPack() {}
 };
 
+struct EQZKeyPack{
+    int Bin, Bout;
+    DPFKeyPack dpfKey;
+    GroupElement rb;
+};
+
 inline void freeMatMulKey(MatMulKey &key){
     delete[] key.a;
     delete[] key.b;

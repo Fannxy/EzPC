@@ -413,6 +413,10 @@ void Peer::send_dpf_keypack(const DPFKeyPack &kp) {
     }
 }
 
+void Peer::send_eqz_keypack(const EQZKeyPack &kp) {
+    send_dpf_keypack(kp.dpfKey);
+    send_ge(kp.rb, kp.Bout);
+}
 
 
 void Peer::send_ddcf_keypack(const DualDCFKeyPack &kp) {
@@ -667,6 +671,15 @@ DPFKeyPack Dealer::recv_dpf_keypack(int Bin, int Bout, int groupSize){
     for(int i=0; i<groupSize; i++){
         kp.g[i] = recv_ge(Bout);
     }
+    return kp;
+}
+
+EQZKeyPack Dealer::recv_eqz_keypack(int Bin, int Bout){
+    EQZKeyPack kp;
+    kp.Bin = Bin; kp.Bout = Bout;
+    DPFKeyPack dpfKey = recv_dpf_keypack(Bin, Bout, 1);
+    kp.dpfKey = dpfKey;
+    kp.rb = recv_ge(Bout);
     return kp;
 }
 
