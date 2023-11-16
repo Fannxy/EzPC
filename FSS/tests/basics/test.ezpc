@@ -1,0 +1,38 @@
+(*
+Name:        Basic Building Blocks Test
+Author:      Fanxy
+Description: Test the APIs of basic functions: addition, multiplication, comparison and equal-test.
+*)
+
+extern void initialize();
+extern void finalize();
+extern void ElemWiseEQZ(int32_pl s1, int64_al[s1] arr1, int64_al[s1] outArr);
+extern void ElemWiseSecretSharedSub(int32_pl s1, int64_al[s1] arr1, int64_al[s1] arr2, int64_al[s1] outArr);
+extern void ElemWiseEQ(int32_pl s1, int64_al[s1] arr1, int64_al[s1] arr2, int64_al[s1] outArr);
+
+
+def void main(){
+    int32_pl size = 100;
+    input(SERVER, A, int64_al[size]);
+    input(CLIENT, B, int64_al[size]);
+
+    initialize();
+    
+    int64_al[size] resEQ;
+    int64_al[size] resZGT;
+    int64_al[size] resSUB;
+
+    (* test subsection *)
+    ElemWiseSecretSharedSub(size, A, B, resSUB);
+
+    (* test EQZ *)
+    ElemWiseEQZ(size, resSUB, resZGT);
+
+    (* test EQ *)
+    ElemWiseEQ(size, A, B, resEQ);
+    
+    finalize();
+    
+    output(CLIENT, resZGT);
+    output(CLIENT, resEQ);
+}
