@@ -46,6 +46,7 @@ type sci_backend_type =
   
 type configuration = {
     bitlen: int;
+    num_threads: int;
     out_mode:codegen;
     tac: bool;
     cse: bool;
@@ -62,6 +63,7 @@ type configuration = {
 
 let c_private :configuration ref = ref {
                                        bitlen = 32;
+                                       num_threads = 5;
                                        out_mode = ABY;
                                        tac = true;
                                        cse = false;
@@ -83,6 +85,11 @@ let set_bitlen (bitlen:int) :unit =
     c_private := { !c_private with bitlen = 32 ; actual_bitlen = bitlen ; modulo = (Uint64.shift_left (Uint64.of_int 1) bitlen) }
 
 let get_bitlen () :int = !c_private.bitlen
+
+let set_num_threads (num_threads:int) :unit = 
+  c_private:={ !c_private with num_threads = num_threads}
+
+let get_num_threads () :int = !c_private.num_threads
 
 let get_actual_bitlen () :int = !c_private.actual_bitlen
 

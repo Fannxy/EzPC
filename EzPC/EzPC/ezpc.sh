@@ -34,6 +34,12 @@ do
 		shift # past argument
 		shift # past value
 		;;
+		--num_threads)
+		NUM_THREADS="$2"
+		allArgs="${allArgs} $1 $2"
+		shift # past argument
+		shift # past value
+		;;
 		--o_prefix)
 		OPREFIX="$2"
 		allArgs="${allArgs} $1 $2"

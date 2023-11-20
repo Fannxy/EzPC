@@ -139,7 +139,8 @@ void ElemWiseSecretSharedVectorMult(int32_t size, MASK_PAIR(GroupElement *inArr)
 void ElemWiseSecretSharedSub(int32_t size, MASK_PAIR(GroupElement *inArr1),
                                 MASK_PAIR(GroupElement *inArr2), MASK_PAIR(GroupElement *outputArr));
 
-// void ElemWiseZeroGreaterThan(int32_t size, MASK_PAIR(GroupElement *inArr), MASK_PAIR(GroupElement *outputArr));
+void ElemWiseSecretSharedAdd(int32_t size, MASK_PAIR(GroupElement *inArr1),
+                                MASK_PAIR(GroupElement *inArr2), MASK_PAIR(GroupElement *outputArr));
 
 void ElemWiseGE(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupElement *inArrY), MASK_PAIR(GroupElement *outputArr));
 

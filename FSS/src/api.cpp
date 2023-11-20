@@ -105,11 +105,11 @@ void EndComputation()
     std::cerr << "\n=== COMPUTATION END ===\n\n";
     if (party != DEALER) {
         std::cerr << "Offline Communication = " << inputOfflineComm << " bytes\n";
-        std::cerr << "Offline Time = " << accumulatedInputTimeOffline / 1000.0 << " milliseconds\n";
+        std::cerr << "Offline Time = " << accumulatedInputTimeOffline / 1000.0 << " sec\n";
         std::cerr << "Online Rounds = " << numRounds << "\n";
         std::cerr << "Online Communication = " << peer->bytesSent + peer->bytesReceived + inputOnlineComm << " bytes\n";
-        std::cerr << "Online Time = " << (evalMicroseconds + accumulatedInputTimeOnline) / 1000.0 << " milliseconds\n\n";
-        std::cerr << "Online keys loading Time = " << (keysLoadingMicroseconds) / 1000.0 << "ms\n\n";
+        std::cerr << "Online Time = " << (evalMicroseconds + accumulatedInputTimeOnline) / 1000.0 << " sec\n\n";
+        std::cerr << "Online keys loading Time = " << (keysLoadingMicroseconds) / 1000.0 << "sec\n\n";
     }
     else {
         std::cerr << "Offline Communication = " << server->bytesSent + client->bytesSent << " bytes\n";
@@ -1211,7 +1211,7 @@ void ElemWiseSecretSharedVectorMult(int32_t size, MASK_PAIR(GroupElement *inArr)
         reconstruct(size, outputArr, bitlength);
         auto end = std::chrono::high_resolution_clock::now();
         auto eval_time = std::chrono::duration_cast<std::chrono::microseconds>(end - t2).count() + std::chrono::duration_cast<std::chrono::microseconds>(t1 - start).count();
-        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " sec" << std::endl;
         evalMicroseconds += eval_time;
         multEvalMicroseconds += eval_time;
         keysLoadingMicroseconds += key_time;
@@ -1245,6 +1245,40 @@ void ElemWiseSecretSharedSub(int32_t size, MASK_PAIR(GroupElement *inArr1),
     std::cerr << ">> ElemWise Sub - end" << std::endl;
 }
 
+void ElemWiseSecretSharedAdd(int32_t size, MASK_PAIR(GroupElement *inArr1),
+                                MASK_PAIR(GroupElement *inArr2), MASK_PAIR(GroupElement *outputArr)){
+    
+    std::cerr << ">> ElemWise Add - begin" << std::endl;
+
+    uint64_t total_time = 0;
+    auto start = std::chrono::high_resolution_clock::now();
+
+    for(int i=0; i<size; i++){
+        auto s = add_helper(party, inArr1[i], inArr2[i], inArr1_mask[i], inArr2_mask[i]);
+        if(party == DEALER) outputArr_mask[i] = s;
+        else outputArr[i] = s;
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    total_time += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+
+    if(party == DEALER) dealerMicroseconds = dealerMicroseconds + total_time;
+    else evalMicroseconds += total_time;
+    std::cerr << "   Eval Time: " << total_time / 1000.0 << " milliseconds" << std::endl;
+    std::cerr << ">> ElemWise Add - end" << std::endl;
+
+}
+
+
+void ge_threads_helper(int thread_idx, int32_t size, GroupElement *inArrX, GroupElement *inArrY, GroupElement *outArr, ScmpKeyPack *keys){
+    auto thread_start = std::chrono::high_resolution_clock::now();
+    auto p = get_start_end(size, thread_idx);
+    for(int i=p.first; i<p.second; i++){
+        outArr[i] = evalSCMP(party - SERVER, keys[i], inArrX
+            [i], inArrY[i]);
+    }
+    auto thread_end = std::chrono::high_resolution_clock::now();
+}
 
 void ElemWiseGE(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupElement *inArrY), MASK_PAIR(GroupElement *outputArr)){
     std::cerr << ">> ElemWise GE - begin" << std::endl;
@@ -1255,7 +1289,6 @@ void ElemWiseGE(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
             auto dealer_start = std::chrono::high_resolution_clock::now();
             outputArr_mask[i] = random_ge(bitlength);
             auto keys = keyGenSCMP(bitlength, bitlength, inArrX_mask[i], inArrY_mask[i], outputArr_mask[i]);
-            // outputArr_mask[i] = 1 - outputArr_mask[i];
             auto dealer_end = std::chrono::high_resolution_clock::now();
             dealer_total_time += std::chrono::duration_cast<std::chrono::microseconds>(dealer_end - dealer_start).count();
             server->send_scmp_keypack(keys.first);
@@ -1276,10 +1309,21 @@ void ElemWiseGE(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
 
         // eval the keys.
         auto start = std::chrono::high_resolution_clock::now();
-        for(int i=0; i<size; i++){
-            outputArr[i] = evalSCMP(party - SERVER, keys[i], inArrX
-            [i], inArrY[i]);
+        // for(int i=0; i<size; i++){
+        //     outputArr[i] = evalSCMP(party - SERVER, keys[i], inArrX
+        //     [i], inArrY[i]);
+        // }
+        // multi-thread version.
+        std::thread thread_pool[num_threads];
+        for(int i=0; i<num_threads; i++){
+            thread_pool[i] = std::thread(ge_threads_helper, i, size, inArrX
+            , inArrY, outputArr, keys);
         }
+
+        for(int i=0; i<num_threads; i++){
+            thread_pool[i].join();
+        }
+
         auto t1 = std::chrono::high_resolution_clock::now();
         peer->sync();
         auto t2 = std::chrono::high_resolution_clock::now();
@@ -1295,6 +1339,17 @@ void ElemWiseGE(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
     std::cerr << ">> ElemWise GE - end" << std::endl;
 }
 
+
+void gt_threads_helper(int thread_idx, int32_t size, GroupElement *inArrX, GroupElement *inArrY, GroupElement *outArr, ScmpKeyPack *keys){
+    auto thread_start = std::chrono::high_resolution_clock::now();
+    auto p = get_start_end(size, thread_idx);
+    for(int i=p.first; i<p.second; i++){
+        outArr[i] = evalSCMP(party - SERVER, keys[i], inArrX
+            [i], inArrY[i]);
+        outArr[i] = 1 - outArr[i];
+    }
+    auto thread_end = std::chrono::high_resolution_clock::now();
+}
 
 void ElemWiseGT(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupElement *inArrY), MASK_PAIR(GroupElement *outputArr)){
     std::cerr << ">> ElemWise GT - begin" << std::endl;
@@ -1325,11 +1380,22 @@ void ElemWiseGT(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
 
         // eval the keys.
         auto start = std::chrono::high_resolution_clock::now();
-        for(int i=0; i<size; i++){
-            outputArr[i] = evalSCMP(party - SERVER, keys[i], inArrY
-            [i], inArrX[i]);
-            outputArr[i] = 1 - outputArr[i];
+        // for(int i=0; i<size; i++){
+        //     outputArr[i] = evalSCMP(party - SERVER, keys[i], inArrY
+        //     [i], inArrX[i]);
+        //     outputArr[i] = 1 - outputArr[i];
+        // }
+        // multi-thread version.
+        std::thread thread_pool[num_threads];
+        for(int i=0; i<num_threads; i++){
+            thread_pool[i] = std::thread(gt_threads_helper, i, size, inArrY
+            , inArrX, outputArr, keys);
         }
+
+        for(int i=0; i<num_threads; i++){
+            thread_pool[i].join();
+        }
+
         auto t1 = std::chrono::high_resolution_clock::now();
         peer->sync();
         auto t2 = std::chrono::high_resolution_clock::now();
@@ -1345,6 +1411,15 @@ void ElemWiseGT(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
     std::cerr << ">> ElemWise GT - end" << std::endl;
 }
 
+
+void eqz_threads_helper(int thread_idx, int32_t size, GroupElement *inArrX, GroupElement *outArr, EQZKeyPack *keys){
+    auto thread_start = std::chrono::high_resolution_clock::now();
+    auto p = get_start_end(size, thread_idx);
+    for(int i=p.first; i<p.second; i++){
+        evalEQZ(party - SERVER, &outArr[i], inArrX[i], keys[i]);    
+    }
+    auto thread_end = std::chrono::high_resolution_clock::now();
+}
 
 void ElemWiseEQZ(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupElement *outputArr)){
     std::cerr << ">> ElemWise EQZ - begin" << std::endl;
@@ -1374,8 +1449,16 @@ void ElemWiseEQZ(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupE
         peer->sync();
 
         auto start = std::chrono::high_resolution_clock::now();
-        for(int i=0; i<size; i++){
-            evalEQZ(party - SERVER, &outputArr[i], inArrX[i], keys[i]);
+        // for(int i=0; i<size; i++){
+        //     evalEQZ(party - SERVER, &outputArr[i], inArrX[i], keys[i]);
+        // }
+        // multi-thread version.
+        std::thread thread_pool[num_threads];
+        for(int i = 0; i < num_threads; ++i) {
+            thread_pool[i] = std::thread(eqz_threads_helper, i, size, inArrX, outputArr, keys);
+        }
+        for(int i = 0; i < num_threads; ++i) {
+            thread_pool[i].join();
         }
         auto t1 = std::chrono::high_resolution_clock::now();
         peer->sync();
@@ -1391,6 +1474,16 @@ void ElemWiseEQZ(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupE
         delete[] keys;
     }
     std::cerr << ">> ElemWise EQZ - end" << std::endl;
+}
+
+
+void eq_threads_helper(int thread_idx, int32_t size, GroupElement *inArrX, GroupElement *inArrY, GroupElement *outArr, EQZKeyPack *keys){
+    auto thread_start = std::chrono::high_resolution_clock::now();
+    auto p = get_start_end(size, thread_idx);
+    for(int i=p.first; i<p.second; i++){
+        evalEQZ(party - SERVER, &outArr[i], inArrX[i] - inArrY[i], keys[i]);
+    }
+    auto thread_end = std::chrono::high_resolution_clock::now();
 }
 
 
@@ -1421,8 +1514,16 @@ void ElemWiseEQ(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
         peer->sync();
 
         auto start = std::chrono::high_resolution_clock::now();
-        for(int i=0; i<size; i++){
-            evalEQZ(party - SERVER, &outputArr[i], inArrX[i] - inArrY[i], keys[i]);
+        // for(int i=0; i<size; i++){
+        //     evalEQZ(party - SERVER, &outputArr[i], inArrX[i] - inArrY[i], keys[i]);
+        // }
+        // multi-thread version.
+        std::thread thread_pool[num_threads];
+        for(int i = 0; i < num_threads; ++i) {
+            thread_pool[i] = std::thread(eq_threads_helper, i, size, inArrX, inArrY, outputArr, keys);
+        }
+        for(int i = 0; i < num_threads; ++i) {
+            thread_pool[i].join();
         }
         auto t1 = std::chrono::high_resolution_clock::now();
         peer->sync();

@@ -120,6 +120,7 @@ let input_file :string ref = ref ""
 
 let specs = Arg.align [
                 ("--bitlen", Arg.Int Config.set_bitlen, "Bitlength to be used for shares");
+                ("--num_threads", Arg.Int Config.set_num_threads, "Threads nums");
                 ("--codegen", Arg.String (fun s -> match s with
                                                    | "ABY" -> ABY |> Config.set_codegen
                                                    | "CPP" -> CPP |> Config.set_codegen

@@ -28,6 +28,7 @@ allArgs="--codegen FSS"
 LIB="N"
 BITLEN="40"
 DEBUG="N"
+NUM_THREADS="5"
 while [[ $# -gt 0 ]]
 do
 	key="$1"
@@ -53,6 +54,11 @@ do
 		;;
 		--bitlen)
 		BITLEN="$2"
+		shift
+		shift
+		;;
+		--num_threads)
+		NUM_THREADS="$2"
 		shift
 		shift
 		;;
@@ -99,7 +105,7 @@ if [ -z ${HELP} ]; then
 	outfile="${newFileNamePrefix}.cpp"
 	
     eval `opam config env`
-    "$currentDirPath/ezpc" $allArgs "--bitlen" "$BITLEN" "${newFileName2}"
+    "$currentDirPath/ezpc" $allArgs "--bitlen" "$BITLEN" "--num_threads" "$NUM_THREADS" "${newFileName2}"
 	if [ -z ${FORMAT} ]; then
 		FORMAT="hehe"
 	else
