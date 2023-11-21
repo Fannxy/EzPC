@@ -8,7 +8,6 @@ SEAL
 *.onnx
 .idea/
 .vscode/
-*.sh
 *.dat
 *.npy
 *.txt
