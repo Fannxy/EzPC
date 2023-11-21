@@ -207,7 +207,7 @@ inline bool operator>=(const GroupElement &a, const GroupElement &b)
 
 inline std::pair<GroupElement, GroupElement> splitShare(const GroupElement& a)
 {   
-    std::cerr << " " << std::endl; // this line is important when running on MAC pro, while i do not know why..
+    // std::cerr << " " << std::endl; // this line is important when running on MAC pro, while i do not know why..
     GroupElement a1, a2;
     a1.bitsize = a.bitsize;
     a2.bitsize = a.bitsize;
