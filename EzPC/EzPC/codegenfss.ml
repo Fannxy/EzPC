@@ -650,6 +650,8 @@ num_threads
 Dealer *dealer = nullptr;\n\
 int useFile = 0;\n\
 Peer *server = nullptr, *client = nullptr, *peer = nullptr;\n\
+const int MAX_RETRY = 5;\n\
+const int TIME_OUT = 10;\n\
 int32_t bitlength = "
 ^
 bitlen
@@ -694,8 +696,29 @@ let porthos_main_prelude_string :string =
 \t\t\t\t\tbreak;
 \t\t\tcase CLIENT:
 \t\t\t\t\tdealer = new Dealer(\"client.dat\");
-\t\t\t\t\tserver = new Peer(server_address, 42002);
-\t\t\t\t\tpeer = server;
+\t\t\t\t\tint retry = 0;
+\t\t\t\t\twhile(true){
+\t\t\t\t\t  try{
+\t\t\t\t\t    server = new Peer(server_address, 42002);
+\t\t\t\t\t    peer = server;
+\t\t\t\t\t    break;
+\t\t\t\t\t  }
+\t\t\t\t\t  catch (const MyException& ex){
+\t\t\t\t\t    std::cerr << \"Error: \" << ex.what() << std::endl;
+\t\t\t\t\t    if(++retry > MAX_RETRY){
+\t\t\t\t\t      std::cerr << \"max retrieds, quit\" << std::endl;
+\t\t\t\t\t      break;
+\t\t\t\t\t    }
+\t\t\t\t\t  }
+\t\t\t\t\t  catch (const std::exception& ex){
+\t\t\t\t\t    std::cerr << \"Error: \" << ex.what() << std::endl;
+\t\t\t\t\t    if(++retry > MAX_RETRY){
+\t\t\t\t\t      std::cerr << \"max retrieds, quit\" << std::endl;
+\t\t\t\t\t      break;
+\t\t\t\t\t    }
+\t\t\t\t\t  }
+\t\t\t\t\t  std::this_thread::sleep_for(std::chrono::milliseconds(10)); 
+\t\t\t\t\t}
 \t\t\t}
 \t} else {\n\
 \t\tswitch (party)
@@ -711,13 +734,37 @@ let porthos_main_prelude_string :string =
 \t\t\t\t\tbreak;
 \t\t\tcase CLIENT:
 \t\t\t\t\tdealer = new Dealer(dealer_address, 42001);
-\t\t\t\t\tserver = new Peer(server_address, 42002);
-\t\t\t\t\tpeer = server;
+\t\t\t\t\tint retry = 0;
+\t\t\t\t\twhile(true){
+\t\t\t\t\t  try{
+\t\t\t\t\t    server = new Peer(server_address, 42002);
+\t\t\t\t\t    peer = server;
+\t\t\t\t\t    break;
+\t\t\t\t\t  }
+\t\t\t\t\t  catch (const MyException& ex){
+\t\t\t\t\t    std::cerr << \"Error: \" << ex.what() << std::endl;
+\t\t\t\t\t    if(++retry > MAX_RETRY){
+\t\t\t\t\t      std::cerr << \"max retrieds, quit\" << std::endl;
+\t\t\t\t\t      break;
+\t\t\t\t\t    }
+\t\t\t\t\t  }
+\t\t\t\t\t  catch (const std::exception& ex){
+\t\t\t\t\t    std::cerr << \"Error: \" << ex.what() << std::endl;
+\t\t\t\t\t    if(++retry > MAX_RETRY){
+\t\t\t\t\t      std::cerr << \"max retrieds, quit\" << std::endl;
+\t\t\t\t\t      break;
+\t\t\t\t\t    }
+\t\t\t\t\t  }
+\t\t\t\t\t  std::this_thread::sleep_for(std::chrono::milliseconds(10)); 
+\t\t\t\t\t}
 \t\t\t}
 \t}
 \tinput_prng_init();
 \n\
 "
+
+(* \t\t\t\t\tserver = new Peer(server_address, 42002);
+\t\t\t\t\tpeer = server; *)
 
 let postlude :string = 
 "\tswitch (party)

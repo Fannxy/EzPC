@@ -37,10 +37,22 @@ SOFTWARE.
 #include <stdio.h>
 #include <string.h>
 #include <fstream>
+#include <exception>
 
 #define DEALER 1
 #define SERVER 2
 #define CLIENT 3
+
+class MyException : public std::exception {  
+public:  
+    MyException(const std::string& message) : msg(message) {}  
+    virtual const char* what() const noexcept {  
+        return msg.c_str();  
+    }  
+private:  
+    std::string msg;  
+};
+
 
 class Peer {
 public:

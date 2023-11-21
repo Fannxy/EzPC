@@ -29,7 +29,8 @@ Peer::Peer(std::string ip, int port) {
         recvsocket = socket(AF_INET, SOCK_STREAM, 0);
         if (recvsocket < 0) {
             perror("socket");
-            exit(1);
+            // exit(1);
+            throw MyException("Failed to create socket.");
         }
         struct sockaddr_in addr;
         addr.sin_family = AF_INET;
@@ -37,7 +38,8 @@ Peer::Peer(std::string ip, int port) {
         addr.sin_addr.s_addr = inet_addr(ip.c_str());
         if (connect(recvsocket, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
             perror("connect");
-            exit(1);
+            // exit(1);
+            throw MyException("Failed to connect.");
         }
         const int one = 1;
         setsockopt(recvsocket, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
@@ -47,7 +49,8 @@ Peer::Peer(std::string ip, int port) {
         sendsocket = socket(AF_INET, SOCK_STREAM, 0);
         if (sendsocket < 0) {
             perror("socket");
-            exit(1);
+            // exit(1);
+            throw MyException("Failed to create socket.");
         }
         struct sockaddr_in addr;
         addr.sin_family = AF_INET;
@@ -55,7 +58,8 @@ Peer::Peer(std::string ip, int port) {
         addr.sin_addr.s_addr = inet_addr(ip.c_str());
         if (connect(sendsocket, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
             perror("connect");
-            exit(1);
+            // exit(1);
+            throw MyException("Failed to connect.");
         }
         const int one = 1;
         setsockopt(sendsocket, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));

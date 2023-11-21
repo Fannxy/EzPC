@@ -105,15 +105,15 @@ void EndComputation()
     std::cerr << "\n=== COMPUTATION END ===\n\n";
     if (party != DEALER) {
         std::cerr << "Offline Communication = " << inputOfflineComm << " bytes\n";
-        std::cerr << "Offline Time = " << accumulatedInputTimeOffline / 1000.0 << " sec\n";
+        std::cerr << "Offline Time = " << accumulatedInputTimeOffline / 1000.0 << " milliseconds\n";
         std::cerr << "Online Rounds = " << numRounds << "\n";
         std::cerr << "Online Communication = " << peer->bytesSent + peer->bytesReceived + inputOnlineComm << " bytes\n";
-        std::cerr << "Online Time = " << (evalMicroseconds + accumulatedInputTimeOnline) / 1000.0 << " sec";
-        std::cerr << "Online keys loading Time = " << (keysLoadingMicroseconds) / 1000.0 << "sec\n\n";
+        std::cerr << "Online Time = " << (evalMicroseconds + accumulatedInputTimeOnline) / 1000.0 << " milliseconds\n";
+        std::cerr << "Online keys loading Time = " << (keysLoadingMicroseconds) / 1000.0 << " milliseconds\n\n";
     }
     else {
         std::cerr << "Offline Communication = " << server->bytesSent + client->bytesSent << " bytes\n";
-        std::cerr << "Offline Time = " << (dealerMicroseconds + accumulatedInputTimeOffline) / 1000.0 << " sec\n";
+        std::cerr << "Offline Time = " << (dealerMicroseconds + accumulatedInputTimeOffline) / 1000.0 << " milliseconds\n";
     }
     std::cerr << "=========\n";
 }
@@ -1211,7 +1211,7 @@ void ElemWiseSecretSharedVectorMult(int32_t size, MASK_PAIR(GroupElement *inArr)
         reconstruct(size, outputArr, bitlength);
         auto end = std::chrono::high_resolution_clock::now();
         auto eval_time = std::chrono::duration_cast<std::chrono::microseconds>(end - t2).count() + std::chrono::duration_cast<std::chrono::microseconds>(t1 - start).count();
-        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " sec" << std::endl;
+        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
         evalMicroseconds += eval_time;
         multEvalMicroseconds += eval_time;
         keysLoadingMicroseconds += key_time;
@@ -1264,7 +1264,7 @@ void ElemWiseSecretSharedAdd(int32_t size, MASK_PAIR(GroupElement *inArr1),
 
     if(party == DEALER) dealerMicroseconds = dealerMicroseconds + total_time;
     else evalMicroseconds += total_time;
-    std::cerr << "   Eval Time: " << total_time / 1000.0 << " sec" << std::endl;
+    std::cerr << "   Eval Time: " << total_time / 1000.0 << " milliseconds" << std::endl;
     std::cerr << ">> ElemWise Add - end" << std::endl;
 
 }
@@ -1279,6 +1279,7 @@ void ge_threads_helper(int thread_idx, int32_t size, GroupElement *inArrX, Group
     }
     auto thread_end = std::chrono::high_resolution_clock::now();
 }
+
 
 void ElemWiseGE(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupElement *inArrY), MASK_PAIR(GroupElement *outputArr)){
     std::cerr << ">> ElemWise GE - begin" << std::endl;
@@ -1333,7 +1334,7 @@ void ElemWiseGE(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
         auto eval_time = std::chrono::duration_cast<std::chrono::microseconds>(end - t2).count() + std::chrono::duration_cast<std::chrono::microseconds>(t1 - start).count();
         evalMicroseconds += eval_time;
         keysLoadingMicroseconds += key_time;
-        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " sec" << std::endl;
+        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
         delete[] keys;
     }
     std::cerr << ">> ElemWise GE - end" << std::endl;
@@ -1350,6 +1351,7 @@ void gt_threads_helper(int thread_idx, int32_t size, GroupElement *inArrX, Group
     }
     auto thread_end = std::chrono::high_resolution_clock::now();
 }
+
 
 void ElemWiseGT(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupElement *inArrY), MASK_PAIR(GroupElement *outputArr)){
     std::cerr << ">> ElemWise GT - begin" << std::endl;
@@ -1405,7 +1407,7 @@ void ElemWiseGT(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
         auto eval_time = std::chrono::duration_cast<std::chrono::microseconds>(end - t2).count() + std::chrono::duration_cast<std::chrono::microseconds>(t1 - start).count();
         evalMicroseconds += eval_time;
         keysLoadingMicroseconds += key_time;
-        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " sec" << std::endl;
+        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
         delete[] keys;
     }
     std::cerr << ">> ElemWise GT - end" << std::endl;
@@ -1470,7 +1472,7 @@ void ElemWiseEQZ(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupE
         evalMicroseconds += eval_time;
         keysLoadingMicroseconds += key_time;
 
-        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " sec" << std::endl;
+        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
         delete[] keys;
     }
     std::cerr << ">> ElemWise EQZ - end" << std::endl;
@@ -1535,7 +1537,7 @@ void ElemWiseEQ(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
         evalMicroseconds += eval_time;
         keysLoadingMicroseconds += key_time;
 
-        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " sec" << std::endl;
+        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
         delete[] keys;
     }
     std::cerr << ">> ElemWise EQ - end" << std::endl;

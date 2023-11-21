@@ -8,7 +8,7 @@ bitlen=64;
 
 # # compile the cpp file and run the code.
 # ./exec/execute.sh ./log/$func
-./exec/distribute_exec.sh ./log/$func
+./exec/distribute_exec.sh ./log/$func-$size-$num_threads
 
 # check the result if output is true.
 if [ $output == true ]; then
