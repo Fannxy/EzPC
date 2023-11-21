@@ -108,12 +108,12 @@ void EndComputation()
         std::cerr << "Offline Time = " << accumulatedInputTimeOffline / 1000.0 << " sec\n";
         std::cerr << "Online Rounds = " << numRounds << "\n";
         std::cerr << "Online Communication = " << peer->bytesSent + peer->bytesReceived + inputOnlineComm << " bytes\n";
-        std::cerr << "Online Time = " << (evalMicroseconds + accumulatedInputTimeOnline) / 1000.0 << " sec\n\n";
+        std::cerr << "Online Time = " << (evalMicroseconds + accumulatedInputTimeOnline) / 1000.0 << " sec";
         std::cerr << "Online keys loading Time = " << (keysLoadingMicroseconds) / 1000.0 << "sec\n\n";
     }
     else {
         std::cerr << "Offline Communication = " << server->bytesSent + client->bytesSent << " bytes\n";
-        std::cerr << "Offline Time = " << (dealerMicroseconds + accumulatedInputTimeOffline) / 1000.0 << " milliseconds\n";
+        std::cerr << "Offline Time = " << (dealerMicroseconds + accumulatedInputTimeOffline) / 1000.0 << " sec\n";
     }
     std::cerr << "=========\n";
 }
@@ -1264,7 +1264,7 @@ void ElemWiseSecretSharedAdd(int32_t size, MASK_PAIR(GroupElement *inArr1),
 
     if(party == DEALER) dealerMicroseconds = dealerMicroseconds + total_time;
     else evalMicroseconds += total_time;
-    std::cerr << "   Eval Time: " << total_time / 1000.0 << " milliseconds" << std::endl;
+    std::cerr << "   Eval Time: " << total_time / 1000.0 << " sec" << std::endl;
     std::cerr << ">> ElemWise Add - end" << std::endl;
 
 }

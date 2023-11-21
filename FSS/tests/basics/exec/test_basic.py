@@ -1,14 +1,17 @@
 import os
 import argparse
 import random
+import multiprocessing
+
 
 def generate_input_file(filename, num_values):
-    input_data = []
+    input_data = random.choices(range(-10, 101), k=num_values)
     with open(filename, 'w') as f:
+        values = random.choices(range(-10, 101), k=num_values)
         for i in range(num_values):
-            value = random.randint(-10, 100)
-            f.write(str(value) + '\n')
-            input_data.append(value)
+            # value = random.randint(-10, 100)
+            f.write(str(values[i]) + '\n')
+            # input_data.append(value)
     return input_data
 
 
@@ -53,7 +56,8 @@ Description: Test the basic functions, this file is generated automatically by t
 
 extern_string = """
 extern void initialize();
-extern void finalize();\n\n
+extern void finalize();
+extern void EndComputation();\n\n
 """
 
 extern_func = ""
@@ -66,7 +70,7 @@ input_string = """
     int64_al[size] res;
 """
 output_string = """
-    finalize();
+    EndComputation();
 """
 
 main_begin_string = """
