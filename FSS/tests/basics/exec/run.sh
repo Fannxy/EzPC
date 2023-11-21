@@ -7,7 +7,8 @@ bitlen=64;
 ./exec/code_generation.sh $func $size $num_threads $output $data $bitlen;
 
 # # compile the cpp file and run the code.
-./exec/execute.sh ./log/$func
+# ./exec/execute.sh ./log/$func
+./exec/distribute_exec.sh ./log/$func
 
 # check the result if output is true.
 if [ $output == true ]; then
