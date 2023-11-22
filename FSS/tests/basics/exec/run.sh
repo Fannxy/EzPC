@@ -1,10 +1,11 @@
 func=$1; size=$2; num_threads=$3;
 output=false;
-data=true;
+data=false;
+program=true;
 bitlen=64;
 
 # generate the ezpc code and test data.
-./exec/code_generation.sh $func $size $num_threads $output $data $bitlen;
+./exec/code_generation.sh $func $size $num_threads $output $data $bitlen $program;
 
 # # compile the cpp file and run the code.
 # ./exec/execute.sh ./log/$func
