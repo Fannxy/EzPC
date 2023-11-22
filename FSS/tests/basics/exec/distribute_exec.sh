@@ -17,6 +17,13 @@ start_time=$(date +%s.%N)
 end_time=$(date +%s.%N)  
 elapsed_time=$(echo "$end_time - $start_time" | bc)
 echo "Dealer Time: $elapsed_time seconds." >> $logOutter
+size=$(stat -c '%s' ./client.dat)  
+size_mb=$(echo "scale=2; $size/1024/1024" | bc)  
+echo "Client key size: ${size_mb}M " >> $logOutter
+
+size=$(stat -c '%s' ./server.dat)  
+size_mb=$(echo "scale=2; $size/1024/1024" | bc)  
+echo "Server key size: ${size_mb}M " >> $logOutter
 echo "done"
 
 # echo -n "[+] data transfer..."
@@ -41,3 +48,6 @@ wait;
 end_time=$(date +%s.%N)  
 elapsed_time=$(echo "$end_time - $start_time" | bc)
 echo "Client Time: $elapsed_time seconds." >> $logOutter
+
+rm ./server.dat
+rm ./client.dat
