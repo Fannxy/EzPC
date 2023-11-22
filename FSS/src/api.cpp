@@ -1170,21 +1170,41 @@ void ElemWiseSecretSharedVectorMult(int32_t size, MASK_PAIR(GroupElement *inArr)
 {
     std::cerr << ">> ElemWise Mult - start" << std::endl;
     if (party == DEALER) {
-        uint64_t dealer_toal_time = 0;
+
+        uint64_t dealer_total_time = 0;
+        uint64_t dealer_file_time = 0;
+        uint64_t dealer_wrapper_time = 0;
+
+        auto wrapper_start = std::chrono::high_resolution_clock::now();
+
         for(int i = 0; i < size; ++i) {
             auto dealer_start = std::chrono::high_resolution_clock::now();
+
             outputArr_mask[i] = random_ge(bitlength);
             auto keys = MultGen(inArr_mask[i], multArrVec_mask[i], outputArr_mask[i]);
+
             auto dealer_end = std::chrono::high_resolution_clock::now();
-            dealer_toal_time += std::chrono::duration_cast<std::chrono::microseconds>(dealer_end - dealer_start).count();
+            dealer_total_time += std::chrono::duration_cast<std::chrono::microseconds>(dealer_end - dealer_start).count();
+
             server->send_mult_key(keys.first);
             client->send_mult_key(keys.second);
+
+            auto dealer_after_file = std::chrono::high_resolution_clock::now();
+            dealer_file_time += std::chrono::duration_cast<std::chrono::microseconds>(dealer_after_file - dealer_end).count();
         }
-        dealerMicroseconds = dealerMicroseconds + dealer_toal_time;
+
+        auto wrapper_end = std::chrono::high_resolution_clock::now();
+        dealer_wrapper_time = std::chrono::duration_cast<std::chrono::microseconds>(wrapper_end - wrapper_start).count();
+        dealerMicroseconds = dealerMicroseconds + dealer_total_time;
+
+        std::cerr << "   Randomness Generation Time: " << dealer_total_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   File Writing Time: " << dealer_file_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Wrapper Time: " << dealer_wrapper_time / 1000.0 << " milliseconds" << std::endl;
     }
     else {
-        MultKey *keys = new MultKey[size];
         auto key_start = std::chrono::high_resolution_clock::now();
+
+        MultKey *keys = new MultKey[size];
         // loading keys.
         for(int i = 0; i < size; ++i) {
             keys[i] = dealer->recv_mult_key();
@@ -1210,11 +1230,25 @@ void ElemWiseSecretSharedVectorMult(int32_t size, MASK_PAIR(GroupElement *inArr)
 
         reconstruct(size, outputArr, bitlength);
         auto end = std::chrono::high_resolution_clock::now();
+
         auto eval_time = std::chrono::duration_cast<std::chrono::microseconds>(end - t2).count() + std::chrono::duration_cast<std::chrono::microseconds>(t1 - start).count();
-        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
+        auto wrapper_exec_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+        auto wrapper_time = std::chrono::duration_cast<std::chrono::microseconds>(end - key_start).count();
+
         evalMicroseconds += eval_time;
-        multEvalMicroseconds += eval_time;
         keysLoadingMicroseconds += key_time;
+
+        std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Keys Loading Time: " << key_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Wrapper Exec Time: " << wrapper_exec_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Wrapper Time: " << wrapper_time / 1000.0 << " milliseconds" << std::endl;
+
+
+        // auto eval_time = std::chrono::duration_cast<std::chrono::microseconds>(end - t2).count() + std::chrono::duration_cast<std::chrono::microseconds>(t1 - start).count();
+        // std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
+        // evalMicroseconds += eval_time;
+        multEvalMicroseconds += eval_time;
+        // keysLoadingMicroseconds += key_time;
         delete[] keys;
 
     }
@@ -1356,37 +1390,54 @@ void gt_threads_helper(int thread_idx, int32_t size, GroupElement *inArrX, Group
 void ElemWiseGT(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupElement *inArrY), MASK_PAIR(GroupElement *outputArr)){
     std::cerr << ">> ElemWise GT - begin" << std::endl;
     if(party == DEALER){
+
         uint64_t dealer_total_time = 0;
+        uint64_t dealer_file_time = 0;
+        uint64_t dealer_wrapper_time = 0;
+
+        auto wrapper_start = std::chrono::high_resolution_clock::now();
+
         for (int i=0; i<size; i++){
             auto dealer_start = std::chrono::high_resolution_clock::now();
+
             outputArr_mask[i] = random_ge(bitlength);
             auto keys = keyGenSCMP(bitlength, bitlength, inArrY_mask[i], inArrX_mask[i], outputArr_mask[i]);
             outputArr_mask[i] = 1 - outputArr_mask[i];
+
             auto dealer_end = std::chrono::high_resolution_clock::now();
             dealer_total_time += std::chrono::duration_cast<std::chrono::microseconds>(dealer_end - dealer_start).count();
+
             server->send_scmp_keypack(keys.first);
             client->send_scmp_keypack(keys.second);
+
+            auto dealer_after_file = std::chrono::high_resolution_clock::now();
+            dealer_file_time += std::chrono::duration_cast<std::chrono::microseconds>(dealer_after_file - dealer_end).count();
         }
+
+        auto wrapper_end = std::chrono::high_resolution_clock::now();
+        dealer_wrapper_time = std::chrono::duration_cast<std::chrono::microseconds>(wrapper_end - wrapper_start).count();
         dealerMicroseconds = dealerMicroseconds + dealer_total_time;
+
+        std::cerr << "   Randomness Generation Time: " << dealer_total_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   File Writing Time: " << dealer_file_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Wrapper Time: " << dealer_wrapper_time / 1000.0 << " milliseconds" << std::endl;
     }
     else{
         // get the keys.
-        ScmpKeyPack *keys = new ScmpKeyPack[size];
         auto key_start = std::chrono::high_resolution_clock::now();
+
+        ScmpKeyPack *keys = new ScmpKeyPack[size];
         for(int i=0; i<size; i++){
             keys[i] = dealer->recv_scmp_keypack(bitlength, bitlength);
         }
         auto key_end = std::chrono::high_resolution_clock::now();
+
         auto key_time = std::chrono::duration_cast<std::chrono::microseconds>(key_end - key_start).count();
         peer->sync();
 
         // eval the keys.
         auto start = std::chrono::high_resolution_clock::now();
-        // for(int i=0; i<size; i++){
-        //     outputArr[i] = evalSCMP(party - SERVER, keys[i], inArrY
-        //     [i], inArrX[i]);
-        //     outputArr[i] = 1 - outputArr[i];
-        // }
+
         // multi-thread version.
         std::thread thread_pool[num_threads];
         for(int i=0; i<num_threads; i++){
@@ -1405,9 +1456,15 @@ void ElemWiseGT(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
         auto end = std::chrono::high_resolution_clock::now();
         
         auto eval_time = std::chrono::duration_cast<std::chrono::microseconds>(end - t2).count() + std::chrono::duration_cast<std::chrono::microseconds>(t1 - start).count();
+        auto wrapper_exec_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+        auto wrapper_time = std::chrono::duration_cast<std::chrono::microseconds>(end - key_start).count();
+
         evalMicroseconds += eval_time;
         keysLoadingMicroseconds += key_time;
         std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Keys Loading Time: " << key_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Wrapper Exec Time: " << wrapper_exec_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Wrapper Time: " << wrapper_time / 1000.0 << " milliseconds" << std::endl;
         delete[] keys;
     }
     std::cerr << ">> ElemWise GT - end" << std::endl;
@@ -1433,7 +1490,6 @@ void ElemWiseEQZ(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupE
             auto keys = keyGenEQZ(bitlength, bitlength, inArrX_mask[i], outputArr_mask[i]);
             auto dealer_end = std::chrono::high_resolution_clock::now();
             dealer_total_time += std::chrono::duration_cast<std::chrono::microseconds>(dealer_end - dealer_start).count();
-
             server->send_eqz_keypack(keys.first);
             client->send_eqz_keypack(keys.second);
         }
@@ -1492,34 +1548,51 @@ void eq_threads_helper(int thread_idx, int32_t size, GroupElement *inArrX, Group
 void ElemWiseEQ(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupElement *inArrY), MASK_PAIR(GroupElement *outputArr)){
     std::cerr << ">> ElemWise EQ - begin" << std::endl;
     if(party == DEALER){
+
         uint64_t dealer_total_time = 0;
+        uint64_t dealer_file_time = 0;
+        uint64_t dealer_wrapper_time = 0;
+
+        auto wrapper_start = std::chrono::high_resolution_clock::now();
+
         for(int i=0; i<size; i++){
             auto dealer_start = std::chrono::high_resolution_clock::now();
+
             outputArr_mask[i] = random_ge(bitlength);
             auto keys = keyGenEQZ(bitlength, bitlength, inArrX_mask[i] - inArrY_mask[i], outputArr_mask[i]);
+
             auto dealer_end = std::chrono::high_resolution_clock::now();
             dealer_total_time += std::chrono::duration_cast<std::chrono::microseconds>(dealer_end - dealer_start).count();
+
             server->send_eqz_keypack(keys.first);
             client->send_eqz_keypack(keys.second);
+
+            auto dealer_after_file = std::chrono::high_resolution_clock::now();
+            dealer_file_time += std::chrono::duration_cast<std::chrono::microseconds>(dealer_after_file - dealer_end).count();
         }
+
+        auto wrapper_end = std::chrono::high_resolution_clock::now();
+        dealer_wrapper_time = std::chrono::duration_cast<std::chrono::microseconds>(wrapper_end - wrapper_start).count();
         dealerMicroseconds = dealerMicroseconds + dealer_total_time;
+
+        std::cerr << "   Randomness Generation Time: " << dealer_total_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   File Writing Time: " << dealer_file_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Wrapper Time: " << dealer_wrapper_time / 1000.0 << " milliseconds" << std::endl;
     }
     else{   
-        EQZKeyPack *keys = new EQZKeyPack[size];
-
         auto key_start = std::chrono::high_resolution_clock::now();
+
+        EQZKeyPack *keys = new EQZKeyPack[size];
         for(int i=0; i<size; i++){
             keys[i] = dealer->recv_eqz_keypack(bitlength, bitlength);
         }
         auto key_end = std::chrono::high_resolution_clock::now();
+
         auto key_time = std::chrono::duration_cast<std::chrono::microseconds>(key_end - key_start).count();
         peer->sync();
 
         auto start = std::chrono::high_resolution_clock::now();
-        // for(int i=0; i<size; i++){
-        //     evalEQZ(party - SERVER, &outputArr[i], inArrX[i] - inArrY[i], keys[i]);
-        // }
-        // multi-thread version.
+
         std::thread thread_pool[num_threads];
         for(int i = 0; i < num_threads; ++i) {
             thread_pool[i] = std::thread(eq_threads_helper, i, size, inArrX, inArrY, outputArr, keys);
@@ -1534,10 +1607,16 @@ void ElemWiseEQ(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
         auto end = std::chrono::high_resolution_clock::now();
 
         auto eval_time = std::chrono::duration_cast<std::chrono::microseconds>(end - t2).count() + std::chrono::duration_cast<std::chrono::microseconds>(t1 - start).count();
+        auto wrapper_exec_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+        auto wrapper_time = std::chrono::duration_cast<std::chrono::microseconds>(end - key_start).count();
+
         evalMicroseconds += eval_time;
         keysLoadingMicroseconds += key_time;
 
         std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Keys Loading Time: " << key_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Wrapper Exec Time: " << wrapper_exec_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Wrapper Time: " << wrapper_time / 1000.0 << " milliseconds" << std::endl;
         delete[] keys;
     }
     std::cerr << ">> ElemWise EQ - end" << std::endl;
