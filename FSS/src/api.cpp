@@ -1234,6 +1234,7 @@ void ElemWiseSecretSharedVectorMult(int32_t size, MASK_PAIR(GroupElement *inArr)
         auto eval_time = std::chrono::duration_cast<std::chrono::microseconds>(end - t2).count() + std::chrono::duration_cast<std::chrono::microseconds>(t1 - start).count();
         auto wrapper_exec_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
         auto wrapper_time = std::chrono::duration_cast<std::chrono::microseconds>(end - key_start).count();
+        auto recon_time = std::chrono::duration_cast<std::chrono::microseconds>(end - t2).count();
 
         evalMicroseconds += eval_time;
         keysLoadingMicroseconds += key_time;
@@ -1241,6 +1242,7 @@ void ElemWiseSecretSharedVectorMult(int32_t size, MASK_PAIR(GroupElement *inArr)
         std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
         std::cerr << "   Keys Loading Time: " << key_time / 1000.0 << " milliseconds" << std::endl;
         std::cerr << "   Wrapper Exec Time: " << wrapper_exec_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Reconstruction Time: " << recon_time / 1000.0 << " milliseconds" << std::endl;
         std::cerr << "   Wrapper Time: " << wrapper_time / 1000.0 << " milliseconds" << std::endl;
 
 
@@ -1458,12 +1460,14 @@ void ElemWiseGT(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
         auto eval_time = std::chrono::duration_cast<std::chrono::microseconds>(end - t2).count() + std::chrono::duration_cast<std::chrono::microseconds>(t1 - start).count();
         auto wrapper_exec_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
         auto wrapper_time = std::chrono::duration_cast<std::chrono::microseconds>(end - key_start).count();
+        auto recon_time = std::chrono::duration_cast<std::chrono::microseconds>(end - t2).count();
 
         evalMicroseconds += eval_time;
         keysLoadingMicroseconds += key_time;
         std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
         std::cerr << "   Keys Loading Time: " << key_time / 1000.0 << " milliseconds" << std::endl;
         std::cerr << "   Wrapper Exec Time: " << wrapper_exec_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Reconstruction Time: " << recon_time / 1000.0 << " milliseconds" << std::endl;
         std::cerr << "   Wrapper Time: " << wrapper_time / 1000.0 << " milliseconds" << std::endl;
         delete[] keys;
     }
@@ -1609,6 +1613,7 @@ void ElemWiseEQ(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
         auto eval_time = std::chrono::duration_cast<std::chrono::microseconds>(end - t2).count() + std::chrono::duration_cast<std::chrono::microseconds>(t1 - start).count();
         auto wrapper_exec_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
         auto wrapper_time = std::chrono::duration_cast<std::chrono::microseconds>(end - key_start).count();
+        auto recon_time = std::chrono::duration_cast<std::chrono::microseconds>(end - t2).count();
 
         evalMicroseconds += eval_time;
         keysLoadingMicroseconds += key_time;
@@ -1616,6 +1621,7 @@ void ElemWiseEQ(int32_t size, MASK_PAIR(GroupElement *inArrX), MASK_PAIR(GroupEl
         std::cerr << "   Eval Time: " << eval_time / 1000.0 << " milliseconds" << std::endl;
         std::cerr << "   Keys Loading Time: " << key_time / 1000.0 << " milliseconds" << std::endl;
         std::cerr << "   Wrapper Exec Time: " << wrapper_exec_time / 1000.0 << " milliseconds" << std::endl;
+        std::cerr << "   Reconstruction Time: " << recon_time / 1000.0 << " milliseconds" << std::endl;
         std::cerr << "   Wrapper Time: " << wrapper_time / 1000.0 << " milliseconds" << std::endl;
         delete[] keys;
     }
